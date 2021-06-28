@@ -26,7 +26,7 @@ def draw_cat_plot():
     # Create DataFrame for cat plot using `pd.melt` using just the values from 'cholesterol', 'gluc', 'smoke', 'alco', 'active', and 'overweight'.
     df_cat = pd.melt(
         frame=df, value_vars=['cholesterol', 'gluc', 'smoke', 'alco', 'active', 'overweight'], 
-        id_vars=['cardio']
+        id_vars='cardio'
     )
 
 
@@ -37,39 +37,36 @@ def draw_cat_plot():
                 columns={'value': 'total'}).reset_index()
 
     # Draw the catplot with 'sns.catplot()'
-    sns.catplot(x='variable', y='total', data=df_cat, hue='value', col='cardio', kind='bar')
+    fig = sns.catplot(x='variable', y='total', data=df_cat, hue='value', col='cardio', kind='bar')
 
 
     # Do not modify the next two lines
     fig.savefig('catplot.png')
-    return fig
+    return fig.fig
 
 
 # Draw Heat Map
 def draw_heat_map():
     # Clean the data
-    df_heat = df
-    df_heat = df_heat[df_heat["ap_lo"] <= df_heat["ap_hi"]]
-    df_heat = df_heat[df_heat["height"] >= df_heat["height"].quantile(0.025)]
-    df_heat = df_heat[df_heat["height"] <= df_heat["height"].quantile(0.975)]
-    df_heat = df_heat[df_heat["weight"] >= df_heat["weight"].quantile(0.025)]
-    df_heat = df_heat[df_heat["weight"] <= df_heat["weight"].quantile(0.975)]
+    df_heat = df[(df['ap_lo'] <= df['ap_hi']) & 
+        (df['height'] >= df['height'].quantile(0.025)) &
+        (df['height'] <= df['height'].quantile(0.975)) &
+        (df['weight'] >= df['weight'].quantile(0.025)) & 
+        (df['weight'] <= df['weight'].quantile(0.975))]
 
     # Calculate the correlation matrix
     corr = df_heat.corr()
 
     # Generate a mask for the upper triangle
-    mask = np.triu(np.ones_like(corr, dtype=bool))
-
-
+    mask = np.triu(np.ones_like(corr))
 
     # Set up the matplotlib figure
-    fig, ax = plt.subplots(figsize = (12, 12))
+    fig, ax = plt.subplots(figsize = (10, 12))
 
     # Draw the heatmap with 'sns.heatmap()'
     
-    sns.heatmap(corr, mask = mask, fmt='.1f', vmax = 0.3, center = 0, annot = True,
-           square = True, linewidths=0.5, cbar_kws={'shrink': 0.45,'format':'%.2f'})
+    sns.heatmap(corr, mask=mask, annot=True,fmt='0.1f',vmax=.3, center=0,
+            square=True, linewidths=.5, cbar_kws={"shrink": .5})
 
 
     # Do not modify the next two lines
